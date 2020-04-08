@@ -37,6 +37,10 @@
 #include <iostream>
 #include <iterator>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #if (defined (UNIX) || defined(CYGWIN)) && !defined(ANDROID)
 #include <wordexp.h>
 #endif
@@ -123,7 +127,12 @@ int strPrintf(std::string& str, const char* fmt, ...)
 
 std::string strExpandFilename(const std::string& filename)
 {
-#if (defined (UNIX) || defined(CYGWIN)) && !defined(ANDROID)
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+  // wordexp() not available on iOS, do nothing.
+  (void) filename;
+  std::cerr << "WARNING: " << __PRETTY_FUNCTION__ << " not implemented" << std::endl;
+  return std::string();
+#elif (defined (UNIX) || defined(CYGWIN)) && !defined(ANDROID)
   string result = filename;
   wordexp_t p;
 

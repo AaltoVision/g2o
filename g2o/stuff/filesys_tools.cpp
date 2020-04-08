@@ -49,6 +49,7 @@
 #endif
 
 #ifdef __APPLE__
+#include <TargetConditionals.h>
 //#include <chrono>
 //#include <thread>
 #endif
@@ -123,8 +124,9 @@ std::vector<std::string> getFilesByPattern(const char* pattern)
 {
   std::vector<std::string> result;
 
-#ifdef WINDOWS
-
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+  // wordexp() not available on iOS, do nothing.
+#elif defined (WINDOWS)
   HANDLE hFind;
   WIN32_FIND_DATA FData;
   if ((hFind = FindFirstFile(pattern, &FData)) != INVALID_HANDLE_VALUE) {
@@ -133,7 +135,6 @@ std::vector<std::string> getFilesByPattern(const char* pattern)
     } while (FindNextFile(hFind, &FData));
     FindClose(hFind);
   }
-  
 #elif (defined (UNIX) || defined (CYGWIN)) && !defined(ANDROID)
 
   wordexp_t p;
@@ -153,7 +154,7 @@ std::vector<std::string> getFilesByPattern(const char* pattern)
   result.reserve(p.we_wordc);
   for (size_t i = 0; i < p.we_wordc; ++i)
     result.push_back(p.we_wordv[i]);
-  
+
   wordfree(&p);
 
 #endif
